@@ -4,6 +4,8 @@
 
 #include  <iostream>
 
+#ifdef HAVE_OPENCV_VIDEOIO
+
 Nan::Persistent<FunctionTemplate> VideoCaptureWrap::constructor;
 
 struct videocapture_baton {
@@ -279,3 +281,5 @@ NAN_METHOD(VideoCaptureWrap::Retrieve) {
 
   return;
 }
+
+#endif

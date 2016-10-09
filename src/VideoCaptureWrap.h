@@ -1,5 +1,7 @@
 #include "OpenCV.h"
 
+#ifdef HAVE_OPENCV_VIDEOIO
+
 class VideoCaptureWrap: public Nan::ObjectWrap {
 public:
   cv::VideoCapture cap;
@@ -30,3 +32,5 @@ public:
   // release the stream
   static NAN_METHOD(Release);
 };
+
+#endif
