@@ -1728,7 +1728,7 @@ NAN_METHOD(Matrix::WarpAffine) {
   Nan::HandleScope scope;
 
   Matrix *self = Nan::ObjectWrap::Unwrap<Matrix>(info.This());
-  cv::Mat res;
+  //cv::Mat res;
 
   Matrix *rotMatrix = Nan::ObjectWrap::Unwrap<Matrix>(info[0]->ToObject());
 
@@ -1736,6 +1736,8 @@ NAN_METHOD(Matrix::WarpAffine) {
   int dstRows = info[1]->IsUndefined() ? self->mat.rows : info[1]->Uint32Value();
   int dstCols = info[2]->IsUndefined() ? self->mat.cols : info[2]->Uint32Value();
   cv::Size resSize = cv::Size(dstRows, dstCols);
+  //resize
+  cv::Mat res(cv::Size(dstRows, dstCols), 8, 3);
 
   cv::warpAffine(self->mat, res, rotMatrix->mat, resSize);
   ~self->mat;
