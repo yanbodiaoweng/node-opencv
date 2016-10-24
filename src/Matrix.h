@@ -56,6 +56,7 @@ public:
   JSFUNC(WarpAffine)
   JSFUNC(PyrDown)
   JSFUNC(PyrUp)
+  JSFUNC(RotateWithoutLose)
 
   JSFUNC(ConvertGrayscale)
   JSFUNC(ConvertHSVscale)

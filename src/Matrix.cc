@@ -49,6 +49,9 @@ void Matrix::Init(Local<Object> target) {
   Nan::SetPrototypeMethod(ctor, "resize", Resize);
   Nan::SetPrototypeMethod(ctor, "rotate", Rotate);
   Nan::SetPrototypeMethod(ctor, "warpAffine", WarpAffine);
+  //--------------
+   Nan::SetPrototypeMethod(ctor, "rotateWithoutLose", RotateWithoutLose);
+  //--------------
   Nan::SetPrototypeMethod(ctor, "copyTo", CopyTo);
   Nan::SetPrototypeMethod(ctor, "convertTo", ConvertTo);
   Nan::SetPrototypeMethod(ctor, "pyrDown", PyrDown);
@@ -1739,11 +1742,62 @@ NAN_METHOD(Matrix::WarpAffine) {
   //resize
   cv::Mat res(cv::Size(dstRows, dstCols), 8, 3);
 
-  cv::warpAffine(self->mat, res, rotMatrix->mat, resSize);
+  cv::warpAffine(self->mat, res, rotMatrix->mat, resSize,cv::INTER_CUBIC,cv:: BORDER_CONSTANT, cv::Scalar::all(0));
   ~self->mat;
   self->mat = res;
 
   return;
+}
+
+//refer:http://stackoverflow.com/questions/11960108/how-to-rotate-a-image-without-losing-the-edges
+NAN_METHOD(Matrix::RotateWithoutLose){
+Nan::HandleScope scope;
+
+  Matrix *self = Nan::ObjectWrap::Unwrap<Matrix>(info.This());
+  float angle = info[0]->ToNumber()->Value();
+
+    cv::Mat im;
+    cv::Matx23d rot = getRotationMatrix2D(cv::Point2f(self->mat.cols/2,self->mat.rows/2),angle,1);
+    cv::Matx31d tl(0,0,1);
+    cv::Matx31d tr(self->mat.cols,0,1);
+    cv::Matx31d bl(0,self->mat.rows,1);
+    cv::Matx31d br(self->mat.cols,self->mat.rows,1);
+
+    std::vector<cv::Point2f> pts;
+    cv::Matx21d tl2 = rot*tl;
+    cv::Matx21d tr2 = rot*tr;
+    cv::Matx21d bl2 = rot*bl;
+    cv::Matx21d br2 = rot*br;
+    pts.push_back(cv::Point2f(tl2(0),tl2(1)));
+    pts.push_back(cv::Point2f(tr2(0),tr2(1)));
+    pts.push_back(cv::Point2f(bl2(0),bl2(1)));
+    pts.push_back(cv::Point2f(br2(0),br2(1)));
+
+    cv::Rect bounds = cv::boundingRect(pts);
+
+    cv::Matx33d tran(1,0,(bounds.width-self->mat.cols)/2,
+                    0,1,(bounds.height-self->mat.rows)/2,
+                    0,0,1);
+    cv::Matx33d rot33;
+    for(int i = 0; i < 6; i++)
+        rot33(i) = rot(i);
+
+    rot33(2,0) = 0;
+    rot33(2,1) = 0;
+    rot33(2,2) = 1;
+    cv::Matx33d combined = tran*rot33;
+    cv::Matx23d final;
+
+    for(int i = 0; i < 6; i++)
+        final(i) = combined(i);
+
+    cv::Size im_size(bounds.width,bounds.height);
+    cv::warpAffine(self->mat, im,final, im_size);
+
+    ~self->mat;
+    self->mat = im;
+
+    return;
 }
 
 NAN_METHOD(Matrix::PyrDown) {
