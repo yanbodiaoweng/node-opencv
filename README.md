@@ -1,3 +1,16 @@
+
+
+this project focks from node-opencv with some external api
+
+```` javascript
+mat.rotateWithoutLose(angle);//旋转角度后不损失图像信息
+exapmle1:
+cv.readImage("./examples/files/mona.png", function(err, im){
+  im.rotateWithoutLose(10);
+  im.save('./out.jpg');
+});
+````
+===================================
 # node-opencv
 
 [![Build Status](https://secure.travis-ci.org/peterbraden/node-opencv.png)](http://travis-ci.org/peterbraden/node-opencv)
